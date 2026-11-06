@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "MyChat",
+    "slug": "mychat",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "ios": {
+      "bundleIdentifier": "com.example.mychat",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Used for video calls.",
+        "NSMicrophoneUsageDescription": "Used for voice and video calls."
+      }
+    },
+    "android": {
+      "package": "com.example.mychat",
+      "permissions": ["CAMERA", "RECORD_AUDIO", "MODIFY_AUDIO_SETTINGS", "FOREGROUND_SERVICE"]
+    },
+    "plugins": ["@config-plugins/react-native-webrtc"]
+  }
+}
