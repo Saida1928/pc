@@ -1,0 +1,41 @@
+// Minimal relay: forwards signaling and chat messages between endpoints.
+// Nothing is stored. If the recipient is offline, the sender gets an 'undelivered' reply.
+const { WebSocketServer } = require('ws');
+
+const PORT = Number(process.env.PORT) || 8080;
+const wss = new WebSocketServer({ port: PORT, maxPayload: 256 * 1024 });
+const online = new Map(); // endpoint id -> socket
+
+wss.on('connection', (ws) => {
+  let endpoint = null;
+
+  ws.on('message', (raw) => {
+    let msg;
+    try {
+      msg = JSON.parse(raw);
+    } catch {
+      return;
+    }
+
+    if (msg.type === 'hello' && typeof msg.endpoint === 'string') {
+      endpoint = msg.endpoint;
+      online.set(endpoint, ws);
+      return;
+    }
+
+    if (!endpoint || typeof msg.to !== 'string') return;
+
+    const peer = online.get(msg.to);
+    if (peer && peer.readyState === 1) {
+      peer.send(JSON.stringify({ ...msg, from: endpoint }));
+    } else {
+      ws.send(JSON.stringify({ type: 'undelivered', to: msg.to, id: msg.id }));
+    }
+  });
+
+  ws.on('close', () => {
+    if (endpoint && online.get(endpoint) === ws) online.delete(endpoint);
+  });
+});
+
+console.log(`MyChat signal server listening on :${PORT}`);
